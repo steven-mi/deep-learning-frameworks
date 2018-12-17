@@ -34,6 +34,11 @@ class Optimizer():
         X = tf.placeholder(tf.float32, X_shape)
         Y = tf.placeholder(tf.float32, y_shape)
 
+        # init
+        sess = tf.Session()
+        init = tf.global_variables_initializer()
+        sess.run(init)
+        
         loss = loss_function(network.forward(X), Y)
         grads = Optimizer.calculate_gradient(network, loss)
 
@@ -43,17 +48,11 @@ class Optimizer():
                 print('Epoch', i + 1)
             for X_mini, y_mini in tqdm(minibatches):
                 for param, grad in zip(network.params, grads):
-                    with tf.Session() as sess:
-                        init = tf.global_variables_initializer()
-                        sess.run(init)
-                        sess_grad = sess.run(grad, feed_dict={X: X_mini, Y: y_mini})
+                    sess_grad = sess.run(grad, feed_dict={X: X_mini, Y: y_mini})
                     for i in range(len(sess_grad)):
                         param[i] = param[i] - learning_rate * sess_grad[i][0]
             if verbose:
-                with tf.Session() as sess:
-                    init = tf.global_variables_initializer()
-                    sess.run(init)
-                    sess_loss = sess.run(loss, feed_dict={X: X_mini, Y: y_mini})
+                sess_loss = sess.run(loss, feed_dict={X: X_mini, Y: y_mini})
                 train_acc = np.mean(np.argmax(y_train, axis=1) == network.predict(X_train))
                 test_acc = np.mean(np.argmax(y_test, axis=1) == network.predict(X_test))
                 print("Loss = {0} :: Training = {1} :: Test = {2}".format(
